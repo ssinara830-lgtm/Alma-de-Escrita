@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Alma de Escritora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="alma-system">
+    <!-- Header -->
+    <header class="alma-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">✍️ Alma de Escritora</div>
+                <nav class="header-nav">
+                    <a href="/" class="nav-link">Início</a>
+                    <a href="/identity-setup" class="nav-link">Identidade</a>
+                    <a href="/dashboard-escritora" class="nav-link active">Dashboard</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="container">
+            <!-- Welcome Section -->
+            <section class="welcome-section">
+                <h1>Bem-vinda à sua Oficina Literária, <span id="userName">Escritora</span>! ✨</h1>
+                <p class="welcome-subtitle">Aqui sua obra ganha vida e conexão com seus leitores.</p>
+            </section>
+
+            <!-- Stats Overview -->
+            <section class="stats-section">
+                <div class="biblioteca-status" id="bibliotecaStats">
+                    <p>
+                        <strong id="totalLivros">0</strong>
+                        <span>Livros Carregados</span>
+                    </p>
+                    <p>
+                        <strong id="totalTrechos">0</strong>
+                        <span>Treços Extraídos</span>
+                    </p>
+                    <p>
+                        <strong id="totalTemas">0</strong>
+                        <span>Temas Identificados</span>
+                    </p>
+                </div>
+            </section>
+
+            <!-- Main Actions Grid -->
+            <section class="actions-grid">
+                <div class="action-card" onclick="showSection('uploadSection')">
+                    <div class="action-icon">📚</div>
+                    <h3>Carregar Novo Livro</h3>
+                    <p>Adicione sua obra à biblioteca para análise</p>
+                </div>
+                
+                <div class="action-card" onclick="showSection('bibliotecaSection')">
+                    <div class="action-icon">📖</div>
+                    <h3>Minha Biblioteca</h3>
+                    <p>Veja todos seus livros e trechos extraídos</p>
+                </div>
+                
+                <div class="action-card" onclick="showSection('curadoriaSection')">
+                    <div class="action-icon">🎨</div>
+                    <h3>Curadoria Mensal</h3>
+                    <p>Plano de conteúdo pronto para o mês</p>
+                </div>
+                
+                <div class="action-card" onclick="showSection('trechosSection')">
+                    <div class="action-icon">💫</div>
+                    <h3>Trechos em Destaque</h3>
+                    <p>Seleções especiais da sua obra</p>
+                </div>
+            </section>
+
+            <!-- Upload Section -->
+            <section id="uploadSection" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">📚 Carregar Novo Livro</h2>
+                    <button class="btn btn-secondary" onclick="hideSection('uploadSection')">Fechar</button>
+                </div>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <h3>Arraste seu livro aqui</h3>
+                    <p>Formatos suportados: PDF</p>
+                    <input type="file" id="fileInput" accept=".pdf" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Selecionar Arquivo
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="tituloLivro">Título do Livro</label>
+                    <input type="text" id="tituloLivro" class="form-input" placeholder="Ex: O Jardim das Memórias">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="sinopseLivro">Sinopse (opcional)</label>
+                    <textarea id="sinopseLivro" class="form-textarea" placeholder="Breve descrição do livro..."></textarea>
+                </div>
+                
+                <button class="btn btn-primary" onclick="carregarLivro()" id="carregarBtn">
+                    🚀 Processar Livro
+                </button>
+                
+                <div class="loading" id="uploadLoading">
+                    <div class="loading-spinner"></div>
+                    <p>Analisando sua obra... Isso pode levar alguns minutos.</p>
+                </div>
+            </section>
+
+            <!-- Biblioteca Section -->
+            <section id="bibliotecaSection" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">📖 Minha Biblioteca Pessoal</h2>
+                    <button class="btn btn-secondary" onclick="hideSection('bibliotecaSection')">Fechar</button>
+                </div>
+                
+                <div id="bibliotecaContent">
+                    <!-- Conteúdo carregado via JavaScript -->
+                </div>
+            </section>
+
+            <!-- Curadoria Section -->
+            <section id="curadoriaSection" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">🎨 Curadoria de Conteúdo</h2>
+                    <button class="btn btn-secondary" onclick="hideSection('curadoriaSection')">Fechar</button>
+                </div>
+                
+                <div class="curadoria-actions">
+                    <button class="btn btn-primary" onclick="gerarPlanoMensal()">
+                        📅 Gerar Plano Mensal
+                    </button>
+                    <button class="btn btn-secondary" onclick="gerarSequenciaLancamento()">
+                        🚀 Sequência de Lançamento
+                    </button>
+                </div>
+                
+                <div id="curadoriaContent">
+                    <!-- Conteúdo da curadoria -->
+                </div>
+                
+                <div class="loading" id="curadoriaLoading">
+                    <div class="loading-spinner"></div>
+                    <p>Criando sua curadoria personalizada...</p>
+                </div>
+            </section>
+
+            <!-- Trechos Section -->
+            <section id="trechosSection" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">💫 Trechos em Destaque</h2>
+                    <button class="btn btn-secondary" onclick="hideSection('trechosSection')">Fechar</button>
+                </div>
+                
+                <div class="trechos-filters">
+                    <input type="text" id="buscaTrechos" class="form-input" placeholder="Buscar por tema...">
+                    <button class="btn btn-secondary" onclick="buscarTrechos()">🔍 Buscar</button>
+                    <button class="btn btn-primary" onclick="carregarTrechosAleatorios()">🎲 Trechos Aleatórios</button>
+                </div>
+                
+                <div class="trechos-grid" id="trechosGrid">
+                    <!-- Trechos carregados via JavaScript -->
+                </div>
+            </section>
+
+            <!-- Preview Modal -->
+            <div id="previewModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Preview do Conteúdo</h3>
+                        <span class="close" onclick="closeModal()">&times;</span>
+                    </div>
+                    <div class="modal-body" id="previewContent">
+                        <!-- Conteúdo do preview -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard_escritora.js"></script>
+</body>
+</html>
+Crie frontend/templates/identity_setup.html:
+html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identidade Visual - Alma de Escritora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="alma-system">
+    <!-- Header -->
+    <header class="alma-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">✍️ Alma de Escritora</div>
+                <nav class="header-nav">
+                    <a href="/" class="nav-link">Início</a>
+                    <a href="/identity-setup" class="nav-link active">Identidade</a>
+                    <a href="/dashboard-escritora" class="nav-link">Dashboard</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="identity-main">
+        <div class="container">
+            <!-- Header Section -->
+            <section class="identity-header">
+                <h1>🎨 Crie Sua Identidade Visual Única</h1>
+                <p class="identity-subtitle">
+                    Sua essência literária merece uma expressão visual que conecta e encanta.
+                </p>
+            </section>
+
+            <!-- Setup Steps -->
+            <div class="setup-steps">
+                <div class="step-indicator active" data-step="1">Marca</div>
+                <div class="step-indicator" data-step="2">Cores</div>
+                <div class="step-indicator" data-step="3">Fontes</div>
+                <div class="step-indicator" data-step="4">Estilo</div>
+                <div class="step-indicator" data-step="5">Preview</div>
+            </div>
+
+            <!-- Step 1: Marca -->
+            <section id="step1" class="setup-step active">
+                <h2 class="section-title">👑 Sua Marca Pessoal</h2>
+                
+                <div class="form-group">
+                    <label class="form-label" for="nomeMarca">Nome da Sua Marca Autoral</label>
+                    <input type="text" id="nomeMarca" class="form-input" placeholder="Ex: Literatura & Essência">
+                    <small>Este será o nome que aparecerá em seus conteúdos</small>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="bioEscritora">Breve Bio da Escritora</label>
+                    <textarea id="bioEscritora" class="form-textarea" placeholder="Conte um pouco sobre sua jornada literária..."></textarea>
+                </div>
+                
+                <div class="step-actions">
+                    <button class="btn btn-primary" onclick="nextStep(2)">Continuar →</button>
+                </div>
+            </section>
+
+            <!-- Step 2: Cores -->
+            <section id="step2" class="setup-step">
+                <h2 class="section-title">🎨 Paleta de Cores Autoral</h2>
+                <p>Escolha cores que representem sua essência literária</p>
+                
+                <div class="color-palette-options">
+                    <div class="palette-option" onclick="selectPalette('classic')">
+                        <div class="palette-preview">
+                            <div style="background: #8B7355;"></div>
+                            <div style="background: #F5F1E8;"></div>
+                            <div style="background: #5D4037;"></div>
+                        </div>
+                        <h4>Clássico Literário</h4>
+                        <p>Tons terrosos e atemporais</p>
+                    </div>
+                    
+                    <div class="palette-option" onclick="selectPalette('modern')">
+                        <div class="palette-preview">
+                            <div style="background: #2C5530;"></div>
+                            <div style="background: #FEF7EC;"></div>
+                            <div style="background: #6B4E3C;"></div>
+                        </div>
+                        <h4>Moderno Natural</h4>
+                        <p>Verdes e tons naturais</p>
+                    </div>
+                    
+                    <div class="palette-option" onclick="selectPalette('poetic')">
+                        <div class="palette-preview">
+                            <div style="background: #6D6875;"></div>
+                            <div style="background: #FFFBFC;"></div>
+                            <div style="background: #B5838D;"></div>
+                        </div>
+                        <h4>Poético Suave</h4>
+                        <p>Lavanda e tons românticos</p>
+                    </div>
+                </div>
+                
+                <div class="custom-colors">
+                    <h4>Ou personalize suas cores:</h4>
+                    <div class="color-picker">
+                        <label>Cor Primária</label>
+                        <input type="color" id="corPrimaria" value="#8B7355" class="color-input">
+                        <input type="text" id="corPrimariaHex" value="#8B7355" class="form-input hex-input">
+                    </div>
+                    
+                    <div class="color-picker">
+                        <label>Cor Secundária</label>
+                        <input type="color" id="corSecundaria" value="#F5F1E8" class="color-input">
+                        <input type="text" id="corSecundariaHex" value="#F5F1E8" class="form-input hex-input">
+                    </div>
+                    
+                    <div class="color-picker">
+                        <label>Cor de Texto</label>
+                        <input type="color" id="corTexto" value="#5D4037" class="color-input">
+                        <input type="text" id="corTextoHex" value="#5D4037" class="form-input hex-input">
+                    </div>
+                </div>
+                
+                <div class="step-actions">
+                    <button class="btn btn-secondary" onclick="prevStep(1)">← Voltar</button>
+                    <button class="btn btn-primary" onclick="nextStep(3)">Continuar →</button>
+                </div>
+            </section>
+
+            <!-- Step 3: Fontes -->
+            <section id="step3" class="setup-step">
+                <h2 class="section-title">🔤 Personalidade Tipográfica</h2>
+                
+                <div class="font-options">
+                    <div class="font-option" onclick="selectFonts('elegant')">
+                        <div class="font-preview" style="font-family: 'Cormorant Garamond', serif;">
+                            <h3>Cormorant Garamond</h3>
+                            <p>Elegante e atemporal, perfeita para títulos</p>
+                        </div>
+                        <div class="font-details">
+                            <span style="font-family: 'Inter', sans-serif;">Inter</span>
+                            <span>para texto</span>
+                        </div>
+                    </div>
+                    
+                    <div class="font-option" onclick="selectFonts('modern')">
+                        <div class="font-preview" style="font-family: 'Playfair Display', serif;">
+                            <h3>Playfair Display</h3>
+                            <p>Moderno com toque clássico</p>
+                        </div>
+                        <div class="font-details">
+                            <span style="font-family: 'Inter', sans-serif;">Inter</span>
+                            <span>para texto</span>
+                        </div>
+                    </div>
+                    
+                    <div class="font-option" onclick="selectFonts('minimal')">
+                        <div class="font-preview" style="font-family: 'Inter', sans-serif;">
+                            <h3>Inter + Inter</h3>
+                            <p>Clean e minimalista</p>
+                        </div>
+                        <div class="font-details">
+                            <span style="font-family: 'Inter', sans-serif;">Inter</span>
+                            <span>para tudo</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="step-actions">
+                    <button class="btn btn-secondary" onclick="prevStep(2)">← Voltar</button>
+                    <button class="btn btn-primary" onclick="nextStep(4)">Continuar →</button>
+                </div>
+            </section>
+
+            <!-- Step 4: Estilo -->
+            <section id="step4" class="setup-step">
+                <h2 class="section-title">✨ Estilo Visual</h2>
+                <p>Como você quer que sua marca seja percebida visualmente?</p>
+                
+                <div class="style-options">
+                    <div class="style-option" onclick="selectStyle('elegante')">
+                        <div class="style-preview elegant-preview">
+                            <div class="preview-card">
+                                <div class="preview-header"></div>
+                                <div class="preview-content">
+                                    <h4>Elegante & Sofisticado</h4>
+                                    <p>Serifas clássicas, espaçamento generoso, toques de luxo</p>
+                                </div>
+                            </div>
+                        </div>
+                        <h4>Elegante</h4>
+                    </div>
+                    
+                    <div class="style-option" onclick="selectStyle('minimalista')">
+                        <div class="style-preview minimal-preview">
+                            <div class="preview-card">
+                                <div class="preview-header"></div>
+                                <div class="preview-content">
+                                    <h4>Minimalista & Clean</h4>
+                                    <p>Máximo espaço em branco, tipografia forte, organização</p>
+                                </div>
+                            </div>
+                        </div>
+                        <h4>Minimalista</h4>
+                    </div>
+                    
+                    <div class="style-option" onclick="selectStyle('criativo')">
+                        <div class="style-preview creative-preview">
+                            <div class="preview-card">
+                                <div class="preview-header"></div>
+                                <div class="preview-content">
+                                    <h4>Criativo & Expressivo</h4>
+                                    <p>Cores ousadas, formas orgânicas, composições únicas</p>
+                                </div>
+                            </div>
+                        </div>
+                        <h4>Criativo</h4>
+                    </div>
+                </div>
+                
+                <div class="step-actions">
+                    <button class="btn btn-secondary" onclick="prevStep(3)">← Voltar</button>
+                    <button class="btn btn-primary" onclick="nextStep(5)">Continuar →</button>
+                </div>
+            </section>
+
+            <!-- Step 5: Preview -->
+            <section id="step5" class="setup-step">
+                <h2 class="section-title">🎭 Preview da Sua Identidade</h2>
+                
+                <div class="preview-container">
+                    <div id="identityPreview" class="identity-preview">
+                        <!-- Preview gerado dinamicamente -->
+                    </div>
+                </div>
+                
+                <div class="preview-actions">
+                    <button class="btn btn-secondary" onclick="prevStep(4)">← Ajustar</button>
+                    <button class="btn btn-primary" onclick="salvarIdentidade()">
+                        💫 Salvar Minha Identidade
+                    </button>
+                </div>
+                
+                <div class="loading" id="saveLoading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p>Criando sua identidade visual...</p>
+                </div>
+            </section>
+
+            <!-- Templates Section -->
+            <section class="templates-section">
+                <h2 class="section-title">📐 Templates Recomendados</h2>
+                <p>Baseado no seu estilo, recomendamos estes templates:</p>
+                
+                <div id="templatesGrid" class="templates-grid">
+                    <!-- Templates carregados via JavaScript -->
+                </div>
+            </section>
+
+            <!-- CSS Output -->
+            <section class="css-output-section">
+                <h2 class="section-title">🎨 Seu CSS Personalizado</h2>
+                <div class="code-container">
+                    <pre id="cssOutput"><code>/* Seu CSS personalizado aparecerá aqui */</code></pre>
+                </div>
+                <button class="btn btn-secondary" onclick="copiarCSS()">📋 Copiar CSS</button>
+            </section>
+        </div>
+    </main>
+
+    <script src="/static/js/identity.js"></script>
+</body>
+</html>
+

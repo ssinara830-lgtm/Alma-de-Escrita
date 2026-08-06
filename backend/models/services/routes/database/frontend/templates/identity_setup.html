@@ -1,0 +1,686 @@
+// Identity Setup - Configuração de Identidade Visual
+
+class IdentitySetup {
+    constructor() {
+        this.currentStep = 1;
+        this.identityData = {
+            nomeMarca: '',
+            bioEscritora: '',
+            coresPrimarias: ['#8B7355', '#F5F1E8', '#5D4037'],
+            fontes: { titulo: 'Cormorant Garamond', texto: 'Inter' },
+            estiloPreferido: 'elegante'
+        };
+        this.init();
+    }
+
+    init() {
+        console.log('🎨 Identity Setup inicializado');
+        this.setupEventListeners();
+        this.loadSavedData();
+        this.updateStepIndicator();
+        this.setupColorPickers();
+    }
+
+    setupEventListeners() {
+        // Navegação entre steps
+        document.querySelectorAll('.step-indicator').forEach(step => {
+            step.addEventListener('click', () => {
+                const stepNumber = parseInt(step.getAttribute('data-step'));
+                this.goToStep(stepNumber);
+            });
+        });
+
+        // Inputs de cores em tempo real
+        document.querySelectorAll('.color-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                this.updateColorFromPicker(e.target);
+            });
+        });
+
+        // Inputs hex em tempo real
+        document.querySelectorAll('.hex-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                this.updateColorFromHex(e.target);
+            });
+        });
+
+        // Input de nome da marca
+        const nomeMarcaInput = document.getElementById('nomeMarca');
+        if (nomeMarcaInput) {
+            nomeMarcaInput.addEventListener('input', (e) => {
+                this.identityData.nomeMarca = e.target.value;
+                this.saveData();
+            });
+        }
+
+        // Input de bio
+        const bioInput = document.getElementById('bioEscritora');
+        if (bioInput) {
+            bioInput.addEventListener('input', (e) => {
+                this.identityData.bioEscritora = e.target.value;
+                this.saveData();
+            });
+        }
+    }
+
+    setupColorPickers() {
+        // Sincronizar color pickers com inputs hex
+        const colorPairs = [
+            { picker: 'corPrimaria', hex: 'corPrimariaHex' },
+            { picker: 'corSecundaria', hex: 'corSecundariaHex' },
+            { picker: 'corTexto', hex: 'corTextoHex' }
+        ];
+
+        colorPairs.forEach(pair => {
+            const picker = document.getElementById(pair.picker);
+            const hex = document.getElementById(pair.hex);
+
+            if (picker && hex) {
+                picker.addEventListener('input', () => {
+                    hex.value = picker.value;
+                    this.updateIdentityColors();
+                });
+
+                hex.addEventListener('input', () => {
+                    if (this.isValidHex(hex.value)) {
+                        picker.value = hex.value;
+                        this.updateIdentityColors();
+                    }
+                });
+            }
+        });
+    }
+
+    isValidHex(color) {
+        return /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/.test(color);
+    }
+
+    updateColorFromPicker(picker) {
+        const hexId = picker.id + 'Hex';
+        const hexInput = document.getElementById(hexId);
+        if (hexInput) {
+            hexInput.value = picker.value;
+        }
+        this.updateIdentityColors();
+    }
+
+    updateColorFromHex(hexInput) {
+        const colorValue = hexInput.value;
+        if (this.isValidHex(colorValue)) {
+            const pickerId = hexInput.id.replace('Hex', '');
+            const picker = document.getElementById(pickerId);
+            if (picker) {
+                picker.value = colorValue;
+            }
+            this.updateIdentityColors();
+        }
+    }
+
+    updateIdentityColors() {
+        this.identityData.coresPrimarias = [
+            document.getElementById('corPrimaria').value,
+            document.getElementById('corSecundaria').value,
+            document.getElementById('corTexto').value
+        ];
+        this.saveData();
+        this.updatePreview();
+    }
+
+    // Navegação entre steps
+    nextStep(step) {
+        if (this.validateStep(this.currentStep)) {
+            this.currentStep = step;
+            this.updateStepIndicator();
+            this.showStep(step);
+            
+            if (step === 5) {
+                this.generatePreview();
+                this.loadTemplates();
+                this.generateCSS();
+            }
+        }
+    }
+
+    prevStep(step) {
+        this.currentStep = step;
+        this.updateStepIndicator();
+        this.showStep(step);
+    }
+
+    goToStep(step) {
+        if (step < this.currentStep || this.validateStep(this.currentStep)) {
+            this.currentStep = step;
+            this.updateStepIndicator();
+            this.showStep(step);
+        }
+    }
+
+    validateStep(step) {
+        switch(step) {
+            case 1:
+                if (!this.identityData.nomeMarca.trim()) {
+                    window.almaApp.mostrarNotificacao('Por favor, informe o nome da sua marca.', 'error');
+                    return false;
+                }
+                return true;
+            
+            case 2:
+                if (!this.identityData.coresPrimarias.every(color => this.isValidHex(color))) {
+                    window.almaApp.mostrarNotificacao('Por favor, selecione cores válidas.', 'error');
+                    return false;
+                }
+                return true;
+            
+            default:
+                return true;
+        }
+    }
+
+    updateStepIndicator() {
+        document.querySelectorAll('.step-indicator').forEach(step => {
+            const stepNumber = parseInt(step.getAttribute('data-step'));
+            step.classList.toggle('active', stepNumber === this.currentStep);
+        });
+    }
+
+    showStep(step) {
+        document.querySelectorAll('.setup-step').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        const stepElement = document.getElementById(`step${step}`);
+        if (stepElement) {
+            stepElement.classList.add('active');
+        }
+    }
+
+    // Seleção de paletas pré-definidas
+    selectPalette(paletteName) {
+        let colors;
+        
+        switch(paletteName) {
+            case 'classic':
+                colors = ['#8B7355', '#F5F1E8', '#5D4037'];
+                break;
+            case 'modern':
+                colors = ['#2C5530', '#FEF7EC', '#6B4E3C'];
+                break;
+            case 'poetic':
+                colors = ['#6D6875', '#FFFBFC', '#B5838D'];
+                break;
+            default:
+                colors = ['#8B7355', '#F5F1E8', '#5D4037'];
+        }
+        
+        // Atualizar inputs
+        document.getElementById('corPrimaria').value = colors[0];
+        document.getElementById('corPrimariaHex').value = colors[0];
+        document.getElementById('corSecundaria').value = colors[1];
+        document.getElementById('corSecundariaHex').value = colors[1];
+        document.getElementById('corTexto').value = colors[2];
+        document.getElementById('corTextoHex').value = colors[2];
+        
+        this.updateIdentityColors();
+        window.almaApp.mostrarNotificacao(`Paleta "${paletteName}" aplicada!`, 'success');
+    }
+
+    // Seleção de fontes
+    selectFonts(fontSet) {
+        let fonts;
+        
+        switch(fontSet) {
+            case 'elegant':
+                fonts = { titulo: 'Cormorant Garamond', texto: 'Inter' };
+                break;
+            case 'modern':
+                fonts = { titulo: 'Playfair Display', texto: 'Inter' };
+                break;
+            case 'minimal':
+                fonts = { titulo: 'Inter', texto: 'Inter' };
+                break;
+            default:
+                fonts = { titulo: 'Cormorant Garamond', texto: 'Inter' };
+        }
+        
+        this.identityData.fontes = fonts;
+        this.saveData();
+        this.updatePreview();
+        window.almaApp.mostrarNotificacao(`Fonte "${fonts.titulo}" selecionada!`, 'success');
+    }
+
+    // Seleção de estilo
+    selectStyle(style) {
+        this.identityData.estiloPreferido = style;
+        this.saveData();
+        this.updatePreview();
+        window.almaApp.mostrarNotificacao(`Estilo "${style}" selecionado!`, 'success');
+    }
+
+    // Geração de Preview
+    generatePreview() {
+        this.updatePreview();
+    }
+
+    updatePreview() {
+        const preview = document.getElementById('identityPreview');
+        if (!preview) return;
+
+        const { nomeMarca, coresPrimarias, fontes, estiloPreferido } = this.identityData;
+        
+        preview.innerHTML = `
+            <div class="preview-card" style="
+                background: ${coresPrimarias[1]};
+                border: 2px solid ${coresPrimarias[0]};
+                border-radius: 12px;
+                overflow: hidden;
+                max-width: 400px;
+                margin: 0 auto;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            ">
+                <div class="preview-header" style="
+                    background: ${coresPrimarias[0]};
+                    height: 80px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                ">
+                    <h3 style="
+                        font-family: ${fontes.titulo}, serif;
+                        color: white;
+                        margin: 0;
+                        font-size: 1.5rem;
+                    ">${nomeMarca || 'Sua Marca'}</h3>
+                </div>
+                
+                <div class="preview-content" style="padding: 2rem;">
+                    <div style="
+                        font-family: ${fontes.texto}, sans-serif;
+                        color: ${coresPrimarias[2]};
+                        text-align: center;
+                        line-height: 1.6;
+                    ">
+                        <p style="
+                            font-style: italic;
+                            margin-bottom: 1.5rem;
+                            font-size: 1.1rem;
+                        ">
+                            "Há silêncios que falam mais que palavras, histórias que vivem entre as linhas..."
+                        </p>
+                        
+                        <div style="
+                            border-top: 1px solid ${coresPrimarias[0]};
+                            padding-top: 1rem;
+                            font-size: 0.9rem;
+                            opacity: 0.8;
+                        ">
+                            — ${nomeMarca || 'Sua Escritora'}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="preview-footer" style="
+                    background: ${coresPrimarias[0]};
+                    padding: 1rem;
+                    text-align: center;
+                    font-size: 0.8rem;
+                    color: white;
+                    font-family: ${fontes.texto}, sans-serif;
+                ">
+                    Estilo: ${estiloPreferido} • ${fontes.titulo} + ${fontes.texto}
+                </div>
+            </div>
+        `;
+    }
+
+    // Carregar Templates
+    async loadTemplates() {
+        try {
+            const response = await window.almaApp.fazerRequisicao(`/api/identity/templates/${this.identityData.estiloPreferido}`);
+            this.renderTemplates(response);
+        } catch (error) {
+            console.error('Erro ao carregar templates:', error);
+            this.renderTemplatesFallback();
+        }
+    }
+
+    renderTemplates(data) {
+        const container = document.getElementById('templatesGrid');
+        const templates = data.templates_gerais || [];
+        
+        let html = '';
+        templates.forEach(template => {
+            html += `
+                <div class="template-card">
+                    <h4>${template.nome}</h4>
+                    <p>${template.descricao}</p>
+                    
+                    <div class="template-details">
+                        <strong>Características:</strong>
+                        <ul>
+                            ${template.caracteristicas.map(c => `<li>${c}</li>`).join('')}
+                        </ul>
+                        
+                        <strong>Elementos visuais:</strong>
+                        <ul>
+                            ${template.elementos_visuais.map(e => `<li>${e}</li>`).join('')}
+                        </ul>
+                        
+                        <strong>Ideal para:</strong>
+                        <p>${template.adequado_para.join(', ')}</p>
+                    </div>
+                    
+                    <button class="btn btn-small btn-primary" onclick="verDiretrizesTemplate('${this.identityData.estiloPreferido}', '${template.nome}')">
+                        Ver Diretrizes
+                    </button>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
+    }
+
+    renderTemplatesFallback() {
+        const container = document.getElementById('templatesGrid');
+        container.innerHTML = `
+            <div class="template-card">
+                <h4>Template Elegante</h4>
+                <p>Para escritoras que buscam sofisticação e timelessness.</p>
+                <div class="template-details">
+                    <strong>Características:</strong>
+                    <ul>
+                        <li>Serifas tradicionais</li>
+                        <li>Dourados discretos</li>
+                        <li>Margens generosas</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="template-card">
+                <h4>Template Minimalista</h4>
+                <p>Foco no conteúdo com máxima legibilidade.</p>
+                <div class="template-details">
+                    <strong>Características:</strong>
+                    <ul>
+                        <li>Máximo espaço em branco</li>
+                        <li>Tipografia forte</li>
+                        <li>Limpo e organizado</li>
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
+
+    // Geração de CSS
+    async generateCSS() {
+        try {
+            const response = await window.almaApp.fazerRequisicao('/api/identity/gerar-css', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(this.identityData)
+            });
+
+            if (response.success) {
+                this.displayCSS(response.css_personalizado);
+            }
+        } catch (error) {
+            console.error('Erro ao gerar CSS:', error);
+            this.generateCSSFallback();
+        }
+    }
+
+    displayCSS(css) {
+        const output = document.getElementById('cssOutput');
+        if (output) {
+            output.textContent = css;
+            
+            // Adicionar syntax highlighting básico
+            output.innerHTML = this.highlightCSS(css);
+        }
+    }
+
+    highlightCSS(css) {
+        return css
+            .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="css-comment">$1</span>')
+            .replace(/(:[a-z-]+)/g, '<span class="css-property">$1</span>')
+            .replace(/(#[a-fA-F0-9]{3,6})/g, '<span class="css-color">$1</span>')
+            .replace(/(@[a-z-]+)/g, '<span class="css-at-rule">$1</span>');
+    }
+
+    generateCSSFallback() {
+        const { coresPrimarias, fontes } = this.identityData;
+        
+        const fallbackCSS = `
+/* ALMA DE ESCRITORA - CSS Personalizado */
+:root {
+    --alma-primaria: ${coresPrimarias[0]};
+    --alma-secundaria: ${coresPrimarias[1]};
+    --alma-texto: ${coresPrimarias[2]};
+    --alma-fonte-titulo: '${fontes.titulo}';
+    --alma-fonte-texto: '${fontes.texto}';
+}
+
+body {
+    font-family: var(--alma-fonte-texto), sans-serif;
+    background-color: var(--alma-secundaria);
+    color: var(--alma-texto);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--alma-fonte-titulo), serif;
+    color: var(--alma-primaria);
+}
+
+.btn-primary {
+    background: var(--alma-primaria);
+    color: white;
+}
+
+/* Seu CSS personalizado completo será gerado ao salvar */
+`;
+        
+        this.displayCSS(fallbackCSS);
+    }
+
+    // Salvar Identidade
+    async salvarIdentidade() {
+        const loadingElement = document.getElementById('saveLoading');
+        
+        if (!this.validateStep(1)) {
+            return;
+        }
+
+        try {
+            mostrarCarregamento(loadingElement);
+
+            // Simular usuário (em produção, viria da autenticação)
+            const userData = {
+                user_id: 'user_' + Date.now(),
+                nome_marca: this.identityData.nomeMarca,
+                cores_primarias: this.identityData.coresPrimarias,
+                fontes: this.identityData.fontes,
+                estilo_preferido: this.identityData.estiloPreferido
+            };
+
+            const response = await window.almaApp.fazerRequisicao('/api/identity/criar-perfil', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData)
+            });
+
+            if (response.success) {
+                window.almaApp.mostrarNotificacao('Identidade salva com sucesso! 🎨', 'success');
+                
+                // Salvar CSS personalizado
+                this.salvarCSSPersonalizado(response.css_personalizado);
+                
+                // Verificar se há conteúdo pendente para aplicar identidade
+                this.checkConteudoPendente();
+                
+                // Redirecionar para dashboard após 2 segundos
+                setTimeout(() => {
+                    window.location.href = '/dashboard-escritora';
+                }, 2000);
+            }
+
+        } catch (error) {
+            console.error('Erro ao salvar identidade:', error);
+            window.almaApp.mostrarNotificacao('Erro ao salvar identidade.', 'error');
+        } finally {
+            esconderCarregamento(loadingElement);
+        }
+    }
+
+    salvarCSSPersonalizado(css) {
+        // Salvar no localStorage para uso imediato
+        window.almaApp.salvarNoLocalStorage('css_personalizado', css);
+        
+        // Opcional: Fazer download do arquivo CSS
+        this.downloadCSS(css, 'alma-identidade.css');
+    }
+
+    downloadCSS(css, filename) {
+        const blob = new Blob([css], { type: 'text/css' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    checkConteudoPendente() {
+        const conteudoPendente = window.almaApp.carregarDoLocalStorage('identidade_pendente');
+        if (conteudoPendente && conteudoPendente.acao === 'aplicar_identidade') {
+            window.almaApp.mostrarNotificacao('Agora você pode aplicar sua identidade ao conteúdo!', 'info');
+            window.almaApp.removerDoLocalStorage('identidade_pendente');
+        }
+    }
+
+    // Gerenciamento de dados local
+    saveData() {
+        window.almaApp.salvarNoLocalStorage('identity_data', this.identityData);
+    }
+
+    loadSavedData() {
+        const saved = window.almaApp.carregarDoLocalStorage('identity_data');
+        if (saved) {
+            this.identityData = { ...this.identityData, ...saved };
+            this.applySavedData();
+        }
+    }
+
+    applySavedData() {
+        // Aplicar dados salvos nos inputs
+        if (this.identityData.nomeMarca) {
+            document.getElementById('nomeMarca').value = this.identityData.nomeMarca;
+        }
+        
+        if (this.identityData.bioEscritora) {
+            document.getElementById('bioEscritora').value = this.identityData.bioEscritora;
+        }
+        
+        // Aplicar cores salvas
+        if (this.identityData.coresPrimarias.length === 3) {
+            document.getElementById('corPrimaria').value = this.identityData.coresPrimarias[0];
+            document.getElementById('corPrimariaHex').value = this.identityData.coresPrimarias[0];
+            document.getElementById('corSecundaria').value = this.identityData.coresPrimarias[1];
+            document.getElementById('corSecundariaHex').value = this.identityData.coresPrimarias[1];
+            document.getElementById('corTexto').value = this.identityData.coresPrimarias[2];
+            document.getElementById('corTextoHex').value = this.identityData.coresPrimarias[2];
+        }
+    }
+}
+
+// Funções globais
+function nextStep(step) {
+    window.identityApp.nextStep(step);
+}
+
+function prevStep(step) {
+    window.identityApp.prevStep(step);
+}
+
+function selectPalette(paletteName) {
+    window.identityApp.selectPalette(paletteName);
+}
+
+function selectFonts(fontSet) {
+    window.identityApp.selectFonts(fontSet);
+}
+
+function selectStyle(style) {
+    window.identityApp.selectStyle(style);
+}
+
+function salvarIdentidade() {
+    window.identityApp.salvarIdentidade();
+}
+
+async function copiarCSS() {
+    const cssOutput = document.getElementById('cssOutput');
+    if (cssOutput) {
+        const cssText = cssOutput.textContent || cssOutput.innerText;
+        await copiarParaAreaTransferencia(cssText);
+    }
+}
+
+async function verDiretrizesTemplate(estilo, templateNome) {
+    try {
+        const response = await window.almaApp.fazerRequisicao(`/api/identity/diretrizes-template?estilo=${estilo}&template_nome=${encodeURIComponent(templateNome)}`);
+        
+        const diretrizes = response.diretrizes || [];
+        const mensagem = diretrizes.join('\n');
+        
+        window.almaApp.mostrarNotificacao('Diretrizes copiadas para a área de transferência!', 'success');
+        await copiarParaAreaTransferencia(mensagem);
+        
+    } catch (error) {
+        console.error('Erro ao buscar diretrizes:', error);
+        window.almaApp.mostrarNotificacao('Erro ao carregar diretrizes.', 'error');
+    }
+}
+
+// Aplicar identidade a conteúdo existente
+async function aplicarIdentidadeConteudo(conteudoData) {
+    try {
+        const identityData = window.identityApp.identityData;
+        const requestData = {
+            ...identityData,
+            conteudo: conteudoData,
+            formato: 'post_instagram'
+        };
+
+        const response = await window.almaApp.fazerRequisicao('/api/identity/aplicar-identidade', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData)
+        });
+
+        if (response.success) {
+            return response.conteudo_pronto;
+        }
+    } catch (error) {
+        console.error('Erro ao aplicar identidade:', error);
+        throw error;
+    }
+}
+
+// Inicialização
+document.addEventListener('DOMContentLoaded', function() {
+    window.identityApp = new IdentitySetup();
+    
+    // Verificar se há identidade salva para aplicar
+    const identidadeSalva = window.almaApp.carregarDoLocalStorage('css_personalizado');
+    if (identidadeSalva) {
+        console.log('🎨 Identidade personalizada carregada');
+    }
+});
+

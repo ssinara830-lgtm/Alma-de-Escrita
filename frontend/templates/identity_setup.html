@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identidade Visual - Alma de Escritora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="alma-system">
+    <header class="alma-header">
+        <div class="container">
+            <div class="logo">✍️ Alma de Escritora</div>
+        </div>
+    </header>
+
+    <main class="identity-main">
+        <div class="container">
+            <section class="identity-header">
+                <h1>🎨 Crie Sua Identidade Visual Única</h1>
+                <p class="identity-subtitle">
+                    Sua essência literária merece uma expressão visual que conecta e encanta.
+                </p>
+            </section>
+
+            <div class="setup-step active">
+                <h2 class="section-title">👑 Sua Marca Pessoal</h2>
+                
+                <div class="form-group">
+                    <label class="form-label" for="nomeMarca">Nome da Sua Marca Autoral</label>
+                    <input type="text" id="nomeMarca" class="form-input" placeholder="Ex: Literatura & Essência">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="estiloPreferido">Estilo Visual Preferido</label>
+                    <select id="estiloPreferido" class="form-select">
+                        <option value="elegante">Elegante & Sofisticado</option>
+                        <option value="minimalista">Minimalista & Clean</option>
+                        <option value="criativo">Criativo & Expressivo</option>
+                    </select>
+                </div>
+                
+                <button class="btn btn-primary" onclick="salvarIdentidade()">
+                    💫 Salvar Minha Identidade
+                </button>
+            </div>
+
+            <div class="preview-container">
+                <div id="identityPreview">
+                    <p>Preview da sua identidade aparecerá aqui após salvar.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/identity.js"></script>
+</body>
+</html>

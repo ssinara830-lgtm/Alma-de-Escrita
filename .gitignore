@@ -1,0 +1,44 @@
+# ===== Segredos (NUNCA subir) =====
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets.json
+
+# ===== Ambiente virtual Python =====
+.venv/
+venv/
+env/
+
+# ===== Cache do Python =====
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ===== Bancos de dados locais =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== Arquivos compactados / builds pesados =====
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# ===== Configs de editor / SO =====
+.vscode/
+.idea/
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# ===== Uploads / saidas geradas =====
+uploads/
+static/outputs/
+
+# restos de git (apagar manualmente)
+.git_quebrado*
+_git_backup*

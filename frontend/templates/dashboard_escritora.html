@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Alma de Escritora</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body class="alma-system">
+    <header class="alma-header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">✍️ Alma de Escritora</div>
+                <nav class="header-nav">
+                    <a href="/" class="nav-link">Início</a>
+                    <a href="/identity-setup" class="nav-link">Identidade</a>
+                    <a href="/dashboard-escritora" class="nav-link active">Dashboard</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="dashboard-main">
+        <div class="container">
+            <section class="welcome-section">
+                <h1>Bem-vinda à sua Oficina Literária! ✨</h1>
+                <p class="welcome-subtitle">Aqui sua obra ganha vida e conexão com seus leitores.</p>
+            </section>
+
+            <section class="stats-section">
+                <div class="biblioteca-status" id="bibliotecaStats">
+                    <p><strong id="totalLivros">0</strong><span>Livros Carregados</span></p>
+                    <p><strong id="totalTrechos">0</strong><span>Trechos Extraídos</span></p>
+                    <p><strong id="totalTemas">0</strong><span>Temas Identificados</span></p>
+                </div>
+            </section>
+
+            <section class="actions-grid">
+                <div class="action-card" onclick="showSection('uploadSection')">
+                    <div class="action-icon">📚</div>
+                    <h3>Carregar Novo Livro</h3>
+                    <p>Adicione sua obra à biblioteca para análise</p>
+                </div>
+                
+                <div class="action-card" onclick="showSection('bibliotecaSection')">
+                    <div class="action-icon">📖</div>
+                    <h3>Minha Biblioteca</h3>
+                    <p>Veja todos seus livros e trechos extraídos</p>
+                </div>
+                
+                <div class="action-card" onclick="showSection('trechosSection')">
+                    <div class="action-icon">💫</div>
+                    <h3>Trechos em Destaque</h3>
+                    <p>Seleções especiais da sua obra</p>
+                </div>
+            </section>
+
+            <!-- Upload Section -->
+            <section id="uploadSection" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">📚 Carregar Novo Livro</h2>
+                    <button class="btn btn-secondary" onclick="hideSection('uploadSection')">Fechar</button>
+                </div>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📄</div>
+                    <h3>Arraste seu livro aqui</h3>
+                    <p>Formatos suportados: PDF</p>
+                    <input type="file" id="fileInput" accept=".pdf" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Selecionar Arquivo
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="tituloLivro">Título do Livro</label>
+                    <input type="text" id="tituloLivro" class="form-input" placeholder="Ex: O Jardim das Memórias">
+                </div>
+                
+                <button class="btn btn-primary" onclick="carregarLivro()" id="carregarBtn">
+                    🚀 Processar Livro
+                </button>
+            </section>
+
+            <!-- Biblioteca Section -->
+            <section id="bibliotecaSection" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">📖 Minha Biblioteca Pessoal</h2>
+                    <button class="btn btn-secondary" onclick="hideSection('bibliotecaSection')">Fechar</button>
+                </div>
+                
+                <div id="bibliotecaContent">
+                    <p>Carregue seu primeiro livro para ver sua biblioteca aqui.</p>
+                </div>
+            </section>
+
+            <!-- Trechos Section -->
+            <section id="trechosSection" class="content-section" style="display: none;">
+                <div class="section-header">
+                    <h2 class="section-title">💫 Trechos em Destaque</h2>
+                    <button class="btn btn-secondary" onclick="hideSection('trechosSection')">Fechar</button>
+                </div>
+                
+                <button class="btn btn-primary" onclick="carregarTrechosAleatorios()">🎲 Carregar Trechos Aleatórios</button>
+                
+                <div class="trechos-grid" id="trechosGrid">
+                    <!-- Trechos carregados via JavaScript -->
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard_escritora.js"></script>
+</body>
+</html>
