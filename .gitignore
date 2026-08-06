@@ -44,3 +44,8 @@ static/outputs/
 _git_backup*
 
 restos_git_*
+
+# restos temporarios (ignorar)
+_lk_*
+_lock_removido*
+restos_git_*

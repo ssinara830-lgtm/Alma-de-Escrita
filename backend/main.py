@@ -9,6 +9,14 @@ from datetime import datetime
 import aiofiles
 import PyPDF2
 import io
+import re
+from collections import Counter
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except Exception:
+    pass
 
 app = FastAPI(
     title="Alma de Escritora",
@@ -41,27 +49,124 @@ class PDFProcessor:
         except Exception as e:
             raise Exception(f"Erro ao extrair texto: {str(e)}")
 
+# Stopwords em português para a análise heurística (sem IA)
+_STOPWORDS = {
+    "a", "o", "e", "de", "do", "da", "das", "dos", "que", "em", "um", "uma", "para",
+    "com", "não", "se", "na", "no", "por", "as", "os", "à", "ao", "aos", "às", "seu",
+    "sua", "seus", "suas", "ele", "ela", "eles", "elas", "eu", "tu", "você", "nós",
+    "me", "te", "lhe", "meu", "minha", "mais", "mas", "como", "quando", "onde", "porque",
+    "isso", "isto", "aquilo", "este", "esta", "esse", "essa", "the", "of", "and", "to",
+    "foi", "era", "são", "ser", "estar", "ter", "há", "já", "só", "também", "muito",
+    "seus", "suas", "num", "numa", "pelo", "pela", "entre", "até", "sobre", "seu",
+    "havia", "pelos", "pelas", "cada", "ainda", "sempre", "nunca", "todo", "toda",
+    "tambem", "apenas", "mesmo", "assim", "então", "entao", "depois", "antes", "sem",
+    "aqui", "ali", "lá", "tão", "tao", "era", "foram", "tinha", "tinham", "esta",
+}
+
+
 class SimpleAnalyzer:
-    @staticmethod
-    def analyze_text(text: str):
-        """Análise simplificada do texto"""
-        palavras = text.split()
-        trecho = text[:200] + "..." if len(text) > 200 else text
-        
+    """
+    Análise real de textos literários.
+
+    - Se houver OPENAI_API_KEY no ambiente, usa a OpenAI para uma análise rica.
+    - Sem chave (ou em caso de erro), faz uma análise heurística DE VERDADE sobre
+      o texto enviado (temas por frequência, frases extraídas do próprio texto),
+      em vez de respostas fixas.
+    """
+
+    def analyze_text(self, text: str):
+        text = (text or "").strip()
+        if not text:
+            return {"trechos_selecionados": [], "temas_principais": [], "frases_instagramaveis": []}
+
+        api_key = os.getenv("OPENAI_API_KEY", "").strip()
+        if api_key and not api_key.lower().startswith("sua_"):
+            try:
+                return self._analyze_with_openai(text, api_key)
+            except Exception as e:
+                # Não quebra a aplicação: cai para a análise heurística
+                print(f"[IA] Falha na OpenAI, usando análise heurística: {e}")
+
+        return self._analyze_heuristic(text)
+
+    # ---------- Análise com IA (OpenAI) ----------
+    def _analyze_with_openai(self, text: str, api_key: str):
+        import openai
+        client = openai.OpenAI(api_key=api_key)
+        model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+
+        prompt = (
+            "Você é uma curadora literária que ajuda escritoras a transformar suas obras "
+            "em conteúdo para redes sociais. Analise o trecho abaixo e responda SOMENTE com "
+            "um JSON válido, sem texto extra, no formato:\n"
+            '{"temas_principais": ["..."], "frases_instagramaveis": ["..."], '
+            '"trechos_selecionados": [{"texto": "...", "tema": "...", "tom_recomendado": "...", '
+            '"pergunta_engajadora": "...", "hashtags_sugeridas": ["#..."]}]}\n\n'
+            "As 'frases_instagramaveis' devem ser extraídas ou inspiradas no próprio texto. "
+            f"Texto:\n\"\"\"\n{text[:4000]}\n\"\"\""
+        )
+
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            response_format={"type": "json_object"},
+        )
+        data = json.loads(resp.choices[0].message.content)
+
+        # Garante as chaves esperadas
+        data.setdefault("temas_principais", [])
+        data.setdefault("frases_instagramaveis", [])
+        data.setdefault("trechos_selecionados", [])
+        data["_fonte_analise"] = f"openai:{model}"
+        return data
+
+    # ---------- Análise heurística (sem IA, mas real) ----------
+    def _analyze_heuristic(self, text: str):
+        # Frases reais do texto
+        frases = [f.strip() for f in re.split(r"(?<=[.!?…])\s+", text) if len(f.strip()) > 15]
+
+        # Temas por frequência de palavras significativas
+        palavras = re.findall(r"[a-zA-ZáàâãéèêíïóôõöúçñÁÀÂÃÉÈÍÓÔÕÖÚÇÑ]{4,}", text.lower())
+        significativas = [p for p in palavras if p not in _STOPWORDS]
+        temas = [w.capitalize() for w, _ in Counter(significativas).most_common(5)] or ["Literatura"]
+
+        # "Frases instagramáveis": frases curtas e completas extraídas do texto
+        instagramaveis = sorted(
+            [f for f in frases if 25 <= len(f) <= 130],
+            key=lambda f: abs(70 - len(f))
+        )[:3] or (frases[:1] if frases else [])
+
+        # Trecho de destaque = a frase de maior "peso" (mais palavras significativas)
+        def peso(f):
+            return sum(1 for p in re.findall(r"\w{4,}", f.lower()) if p not in _STOPWORDS)
+        trecho_destaque = max(frases, key=peso) if frases else text[:200]
+
+        hashtags = []
+        for h in ["#Literatura", "#Escrita"] + ["#" + t.replace(" ", "") for t in temas[:3]]:
+            if h not in hashtags:
+                hashtags.append(h)
+
         return {
+            "estatisticas": {
+                "total_palavras": len(palavras),
+                "total_frases": len(frases),
+                "tempo_leitura_min": max(1, round(len(palavras) / 200)),
+            },
+            "temas_principais": temas,
+            "frases_instagramaveis": instagramaveis,
             "trechos_selecionados": [
                 {
-                    "texto": trecho,
-                    "tema": "Reflexão Literária",
+                    "texto": trecho_destaque,
+                    "tema": temas[0] if temas else "Reflexão",
                     "tom_recomendado": "poético",
-                    "potencial_engajamento": 8,
+                    "potencial_engajamento": min(10, 5 + len(temas)),
                     "formatos_recomendados": ["post_instagram", "story"],
-                    "pergunta_engajadora": "O que essa reflexão desperta em você?",
-                    "hashtags_sugeridas": ["#Literatura", "#Escritora", "#Reflexão"]
+                    "pergunta_engajadora": "O que essa passagem desperta em você?",
+                    "hashtags_sugeridas": hashtags,
                 }
             ],
-            "temas_principais": ["Literatura", "Reflexão", "Crescimento"],
-            "frases_instagramaveis": ["Há silêncios que falam mais que palavras."]
+            "_fonte_analise": "heuristica",
         }
 
 # Rotas principais

@@ -5,7 +5,8 @@ Assistente pessoal de curadoria literária para escritoras. A aplicação ajuda 
 ## Funcionalidades
 
 - Upload e leitura de arquivos PDF
-- Análise de conteúdo com apoio de Inteligência Artificial
+- Análise de conteúdo com Inteligência Artificial (OpenAI) — identifica temas, sugere frases "instagramáveis", tom e hashtags a partir do texto
+- Funciona também **sem chave de API**: nesse caso faz uma análise heurística real do texto enviado (temas por frequência, frases extraídas da própria obra), em vez de resultados fixos
 - Biblioteca pessoal para organizar obras e referências
 - Curadoria e sugestões voltadas para escritoras
 - Interface web com dashboard
