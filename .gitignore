@@ -42,3 +42,5 @@ static/outputs/
 # restos de git (apagar manualmente)
 .git_quebrado*
 _git_backup*
+
+restos_git_*
